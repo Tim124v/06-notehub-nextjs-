@@ -1,20 +1,28 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchNoteById } from '@/lib/api';
+import NoteModal from '@/components/NoteModal/NoteModal';
+import { Note } from '@/types/note';
 import css from './NoteDetails.module.css';
 
 interface NoteDetailsProps {
-  noteId: string;
+  noteId: number;
 }
 
 export default function NoteDetails({ noteId }: NoteDetailsProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: note, isLoading, error } = useQuery({
+  const {
+    data: note,
+    isLoading,
+    error,
+  } = useQuery<Note>({
     queryKey: ['note', noteId],
-    queryFn: () => fetchNoteById(Number(noteId)),
+    queryFn: () => fetchNoteById(noteId),
+    refetchOnMount: false, // Prevent refetching on mount
   });
-
 
   if (isLoading) {
     return <p>Loading, please wait...</p>;
@@ -27,15 +35,25 @@ export default function NoteDetails({ noteId }: NoteDetailsProps) {
   const createdDate = new Date(note.createdAt).toLocaleDateString();
 
   return (
-    <div className={css.container}>
-      <div className={css.item}>
-        <div className={css.header}>
-          <h2>{note.title}</h2>
-          <button className={css.editBtn}>Edit note</button>
+    <>
+      <div className={css.container}>
+        <div className={css.item}>
+          <div className={css.header}>
+            <h2>{note.title}</h2>
+            <button className={css.editBtn} onClick={() => setIsModalOpen(true)}>
+              Edit note
+            </button>
+          </div>
+          <p className={css.content}>{note.content}</p>
+          <p className={css.date}>Created: {createdDate}</p>
         </div>
-        <p className={css.content}>{note.content}</p>
-        <p className={css.date}>Created: {createdDate}</p>
       </div>
-    </div>
+      {isModalOpen && (
+        <NoteModal
+          note={note}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
+    </>
   );
 }

@@ -1,8 +1,9 @@
 import axios from "axios";
+import { Note, CreateNoteRequest, UpdateNoteRequest } from '@/types/note';
 
 
 const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
-const baseURL = "https://notehub-public.goit.study/api/notes";
+const baseURL = "https://notehub-public.goit.study/api";
 
 
 const api = axios.create({ 
@@ -10,21 +11,29 @@ const api = axios.create({
   headers: { Authorization: `Bearer ${token}` } 
 });
 
-
-export async function fetchNotes() {
-  try {
-    const response = await api.get("/");
-    return response.data.notes;
-  } catch (error) {
-    console.error('Error fetching notes:', error);
-    throw new Error('Failed to fetch notes');
-  }
+interface FetchNotesResponse {
+  notes: Note[];
+  totalPages: number;
 }
 
-
-export async function fetchNoteById(id: number) {
+export const fetchNotes = async (page: number = 1, query: string = ''): Promise<FetchNotesResponse> => {
   try {
-    const response = await api.get(`/${id}`);
+    const params: { page: number, query?: string } = { page };
+    if (query) {
+      params.query = query;
+    }
+    const response = await api.get('/notes', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching notes:', error);
+    throw error;
+  }
+};
+
+
+export async function fetchNoteById(id: number): Promise<Note> {
+  try {
+    const response = await api.get<Note>(`/notes/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching note:', error);
@@ -33,9 +42,9 @@ export async function fetchNoteById(id: number) {
 }
 
 
-export async function createNote(note: { title: string; content: string; tag: string }) {
+export async function createNote(note: CreateNoteRequest): Promise<Note> {
   try {
-    const response = await api.post("/", note);
+    const response = await api.post<Note>('/notes', note);
     return response.data;
   } catch (error) {
     console.error('Error creating note:', error);
@@ -43,9 +52,12 @@ export async function createNote(note: { title: string; content: string; tag: st
   }
 }
 
-export async function updateNote(id: number, note: { title?: string; content?: string; tag?: string }) {
+export async function updateNote(
+  id: number,
+  note: UpdateNoteRequest
+): Promise<Note> {
   try {
-    const response = await api.put(`/${id}`, note);
+    const response = await api.put<Note>(`/notes/${id}`, note);
     return response.data;
   } catch (error) {
     console.error('Error updating note:', error);
@@ -54,9 +66,9 @@ export async function updateNote(id: number, note: { title?: string; content?: s
 }
 
 
-export async function deleteNote(id: number) {
+export async function deleteNote(id: number): Promise<{ message: string }> {
   try {
-    const response = await api.delete(`/${id}`);
+    const response = await api.delete<{ message: string }>(`/notes/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error deleting note:', error);

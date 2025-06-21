@@ -1,29 +1,46 @@
 'use client';
 
-import css from './NoteList.module.css';
-import { Note } from '../../types/note';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { deleteNote } from '@/lib/api';
+import { Note } from '../../types/note';
+import css from './NoteList.module.css';
 
-export interface NoteListProps {
+interface NoteListProps {
   notes: Note[];
-  onDelete: (id: number) => void;
-  isDeletePending: boolean;
 }
 
-
 const getTagClassName = (tag: Note['tag']) => {
-  const tagKey = tag.toLowerCase() as keyof typeof css;
-  if (css[tagKey]) {
-    return `${css.tag} ${css[tagKey]}`;
+  switch (tag) {
+    case 'Todo':
+      return `${css.tag} ${css.todo}`;
+    case 'Work':
+      return `${css.tag} ${css.work}`;
+    case 'Personal':
+      return `${css.tag} ${css.personal}`;
+    case 'Meeting':
+      return `${css.tag} ${css.meeting}`;
+    case 'Shopping':
+      return `${css.tag} ${css.shopping}`;
+    default:
+      return css.tag;
   }
-  return css.tag;
 };
 
-function NoteList({ notes, onDelete, isDeletePending }: NoteListProps) {
+function NoteList({ notes }: NoteListProps) {
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+    },
+  });
+
   if (!notes.length) {
     return <p>No notes found.</p>;
   }
-  
+
   return (
     <ul className={css.list}>
       {notes.map(note => (
@@ -35,12 +52,12 @@ function NoteList({ notes, onDelete, isDeletePending }: NoteListProps) {
             <Link href={`/notes/${note.id}`} className={css.link}>
               View details
             </Link>
-            <button 
-              className={css.button} 
-              onClick={() => onDelete(note.id)}
-              disabled={isDeletePending}
+            <button
+              className={css.button}
+              onClick={() => deleteMutation.mutate(note.id)}
+              disabled={deleteMutation.isPending}
             >
-              {isDeletePending ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </button>
           </div>
         </li>

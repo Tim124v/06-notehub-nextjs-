@@ -1,127 +1,109 @@
 "use client";
-import React, { useState } from 'react';
+
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import { createNote, updateNote } from '@/lib/api';
 import { Note, CreateNoteRequest } from '@/types/note';
 import css from './NoteForm.module.css';
 
-export interface NoteFormProps {
-  onCancel: () => void;
-  onSubmit: (data: CreateNoteRequest) => void;
-  isPending: boolean;
+interface NoteFormProps {
+  note?: Note;
+  onClose: () => void;
 }
 
-const initialValues = {
-  title: '',
-  content: '',
-  tag: 'Todo' as Note['tag'],
-};
+const NoteSchema = Yup.object().shape({
+  title: Yup.string()
+    .min(3, 'Title must be at least 3 characters')
+    .max(50, 'Title must be less than 50 characters')
+    .required('Title is required'),
+  content: Yup.string()
+    .max(500, 'Content must be less than 500 characters')
+    .required('Content is required'),
+  tag: Yup.string().oneOf(['Todo', 'Work', 'Personal', 'Meeting', 'Shopping']),
+});
 
-function NoteForm({ onCancel, onSubmit, isPending }: NoteFormProps) {
-  const [formData, setFormData] = useState(initialValues);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+function NoteForm({ note, onClose }: NoteFormProps) {
+  const queryClient = useQueryClient();
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
-    } else if (formData.title.length < 3) {
-      newErrors.title = 'Title must be at least 3 characters';
-    } else if (formData.title.length > 50) {
-      newErrors.title = 'Title must be less than 50 characters';
-    }
+  const mutation = useMutation({
+    mutationFn: (values: CreateNoteRequest) =>
+      note ? updateNote(note.id, values) : createNote(values),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+      onClose();
+    },
+  });
 
-    if (formData.content.length > 500) {
-      newErrors.content = 'Content must be less than 500 characters';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (validateForm()) {
-      onSubmit({
-        title: formData.title.trim(),
-        content: formData.content,
-        tag: formData.tag,
-      });
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+  const initialValues = {
+    title: note?.title || '',
+    content: note?.content || '',
+    tag: note?.tag || 'Todo',
   };
 
   return (
-    <form className={css.form} onSubmit={handleSubmit}>
+    <Formik
+      initialValues={initialValues}
+      validationSchema={NoteSchema}
+      onSubmit={values => {
+        mutation.mutate(values);
+      }}
+    >
+      {({ isSubmitting }) => (
+        <Form className={css.form}>
           <div className={css.formGroup}>
             <label htmlFor="title">Title</label>
-        <input
-          id="title"
-          name="title"
-          type="text"
-          value={formData.title}
-          onChange={handleChange}
-          className={css.input}
-        />
-        {errors.title && <span className={css.error}>{errors.title}</span>}
+            <Field id="title" name="title" type="text" className={css.input} />
+            <ErrorMessage name="title" component="span" className={css.error} />
           </div>
-      
+
           <div className={css.formGroup}>
             <label htmlFor="content">Content</label>
-        <textarea
-          id="content"
-          name="content"
-          rows={8}
-          value={formData.content}
-          onChange={handleChange}
-          className={css.textarea}
-        />
-        {errors.content && <span className={css.error}>{errors.content}</span>}
+            <Field
+              id="content"
+              name="content"
+              as="textarea"
+              rows={8}
+              className={css.textarea}
+            />
+            <ErrorMessage
+              name="content"
+              component="span"
+              className={css.error}
+            />
           </div>
-      
+
           <div className={css.formGroup}>
             <label htmlFor="tag">Tag</label>
-        <select
-          id="tag"
-          name="tag"
-          value={formData.tag}
-          onChange={handleChange}
-          className={css.select}
-        >
+            <Field id="tag" name="tag" as="select" className={css.select}>
               <option value="Todo">Todo</option>
               <option value="Work">Work</option>
               <option value="Personal">Personal</option>
               <option value="Meeting">Meeting</option>
               <option value="Shopping">Shopping</option>
-        </select>
+            </Field>
           </div>
-      
+
           <div className={css.actions}>
-        <button 
-          type="button" 
-          className={css.cancelButton} 
-          onClick={onCancel}
-          disabled={isPending}
-        >
+            <button
+              type="button"
+              className={css.cancelButton}
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Cancel
             </button>
-        <button 
-          type="submit" 
-          className={css.submitButton}
-          disabled={isPending}
-        >
-          {isPending ? 'Creating...' : 'Create note'}
+            <button
+              type="submit"
+              className={css.submitButton}
+              disabled={isSubmitting || mutation.isPending}
+            >
+              {mutation.isPending ? 'Saving...' : note ? 'Update Note' : 'Create Note'}
             </button>
           </div>
-    </form>
+        </Form>
+      )}
+    </Formik>
   );
 }
 

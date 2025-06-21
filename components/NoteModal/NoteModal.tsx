@@ -3,15 +3,14 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import css from './NoteModal.module.css';
 import NoteForm from '../NoteForm/NoteForm';
-import { CreateNoteRequest } from '@/types/note';
+import { Note } from '@/types/note';
 
 interface NoteModalProps {
+  note?: Note;
   onClose: () => void;
-  onSubmit: (data: CreateNoteRequest) => void;
-  isPending: boolean;
 }
 
-function NoteModal({ onClose, onSubmit, isPending }: NoteModalProps) {
+function NoteModal({ note, onClose }: NoteModalProps) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -38,13 +37,14 @@ function NoteModal({ onClose, onSubmit, isPending }: NoteModalProps) {
   }
 
   return ReactDOM.createPortal(
-    <div className={css.backdrop} role="dialog" aria-modal="true" onClick={handleBackdropClick}>
+    <div
+      className={css.backdrop}
+      role="dialog"
+      aria-modal="true"
+      onClick={handleBackdropClick}
+    >
       <div className={css.modal} onClick={e => e.stopPropagation()}>
-        <NoteForm 
-          onCancel={onClose} 
-          onSubmit={onSubmit}
-          isPending={isPending}
-        />
+        <NoteForm note={note} onClose={onClose} />
       </div>
     </div>,
     document.body

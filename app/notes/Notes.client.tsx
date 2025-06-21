@@ -1,59 +1,38 @@
 'use client';
 
 import { useState } from 'react';
-import SearchBox from "@/components/SearchBox/SearchBox";
-import NoteList from "@/components/NoteList/NoteList";
-import NoteModal from "@/components/NoteModal/NoteModal";
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchNotes, createNote, deleteNote } from '@/lib/api';
-import { Note, CreateNoteRequest } from '@/types/note';
+import { useQuery, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { keepPreviousData } from '@tanstack/react-query';
+import { useDebounce } from 'use-debounce';
+import { fetchNotes } from '@/lib/api';
+import NoteList from '@/components/NoteList/NoteList';
+import NoteModal from '@/components/NoteModal/NoteModal';
+import SearchBox from '@/components/SearchBox/SearchBox';
+import Pagination from '@/components/Pagination/Pagination';
 import styles from './NotesPage.module.css';
 
-export default function NotesClient() {
+const queryClient = new QueryClient();
+
+function NotesClientContent() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const queryClient = useQueryClient();
 
-  const { data: notes = [], isLoading, error } = useQuery({
-    queryKey: ['notes'],
-    queryFn: fetchNotes,
+  const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['notes', page, debouncedSearchQuery],
+    queryFn: () => fetchNotes(page, debouncedSearchQuery),
+    placeholderData: keepPreviousData,
   });
 
-  const createMutation = useMutation({
-    mutationFn: createNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-      setIsModalOpen(false);
-    },
-  });
+  const notes = data?.notes || [];
+  const totalPages = data?.totalPages || 1;
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-    },
-  });
-
-  const handleCreateNote = (noteData: CreateNoteRequest) => {
-    createMutation.mutate(noteData);
+  const handlePageChange = (selectedItem: { selected: number }) => {
+    setPage(selectedItem.selected + 1);
   };
 
-  const filteredNotes = notes.filter((note: Note) => {
-    const title = note.title.toLowerCase();
-    const content = note.content.toLowerCase();
-    const query = searchQuery.toLowerCase();
-    return title.includes(query) || content.includes(query);
-  });
-
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate(id);
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
-
-  if (isLoading) return <p>Loading, please wait...</p>;
   if (error) return <p>Could not fetch the list of notes. {error.message}</p>;
 
   return (
@@ -61,11 +40,8 @@ export default function NotesClient() {
       <div className={styles.toolbar}>
         <h1>Notes</h1>
         <div className={styles.toolbarRight}>
-          <SearchBox 
-            value={searchQuery}
-            onChange={handleSearch}
-          />
-          <button 
+          <SearchBox value={searchQuery} onChange={setSearchQuery} />
+          <button
             onClick={() => setIsModalOpen(true)}
             className={styles.button}
           >
@@ -73,20 +49,20 @@ export default function NotesClient() {
           </button>
         </div>
       </div>
-      
-      <NoteList 
-        notes={filteredNotes}
-        onDelete={handleDelete}
-        isDeletePending={deleteMutation.isPending}
-      />
-      
-      {isModalOpen && (
-        <NoteModal 
-          onClose={() => setIsModalOpen(false)} 
-          onSubmit={handleCreateNote}
-          isPending={createMutation.isPending}
-        />
-      )}
+
+      {isLoading ? <p>Loading...</p> : <NoteList notes={notes} />}
+
+      <Pagination pageCount={totalPages} onPageChange={handlePageChange} />
+
+      {isModalOpen && <NoteModal onClose={() => setIsModalOpen(false)} />}
     </div>
   );
-} 
+}
+
+export default function NotesClient() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <NotesClientContent />
+    </QueryClientProvider>
+  );
+}
