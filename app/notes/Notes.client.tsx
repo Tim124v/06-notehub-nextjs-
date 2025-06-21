@@ -5,7 +5,7 @@ import SearchBox from "@/components/SearchBox/SearchBox";
 import NoteList from "@/components/NoteList/NoteList";
 import NoteModal from "@/components/NoteModal/NoteModal";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchNotes, createNote, deleteNote } from '../../lib/api/api';
+import { fetchNotes, createNote, deleteNote } from '@/lib/api';
 import { Note, CreateNoteRequest } from '@/types/note';
 import styles from './NotesPage.module.css';
 
