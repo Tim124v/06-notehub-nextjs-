@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { fetchNotes, FetchNotesResponse } from '@/lib/api';
+import { useDebounce } from '@/hooks/useDebounce';
 import NoteList from '@/components/NoteList/NoteList';
 import SearchBox from '@/components/SearchBox/SearchBox';
 import Pagination from '@/components/Pagination/Pagination';
@@ -19,26 +20,24 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const isInitialMount = useRef(true);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['notes', page],
-    queryFn: () => fetchNotes(page),
+    queryKey: ['notes', page, debouncedSearchQuery],
+    queryFn: () => fetchNotes(page, debouncedSearchQuery),
     placeholderData: keepPreviousData,
     initialData: initialNotes,
     retry: false,
   });
 
-  const filteredNotes = useMemo(() => {
-    const notes = data?.notes || [];
-    if (!searchQuery) {
-      return notes;
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+    } else {
+      setPage(1);
     }
-    return notes.filter(
-      note =>
-        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        note.content.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [data?.notes, searchQuery]);
+  }, [debouncedSearchQuery]);
 
   const handlePageChange = (selectedItem: { selected: number }) => {
     setPage(selectedItem.selected + 1);
@@ -46,7 +45,6 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
-    setPage(1);
   };
 
   return (
@@ -64,7 +62,7 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
         </div>
       </div>
 
-      {isLoading ? <p>Loading...</p> : <NoteList notes={filteredNotes} />}
+      {isLoading ? <p>Loading...</p> : <NoteList notes={data?.notes || []} />}
 
       {data && data.totalPages > 1 && (
         <Pagination

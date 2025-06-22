@@ -14,11 +14,15 @@ export interface FetchNotesResponse {
   totalPages: number;
 }
 
-export const fetchNotes = async (page: number = 1): Promise<FetchNotesResponse> => {
+export const fetchNotes = async (page: number = 1, query?: string): Promise<FetchNotesResponse> => {
   try {
     const params = new URLSearchParams({
       page: page.toString(),
     });
+
+    if (query) {
+      params.append('search', query);
+    }
 
     const response = await api.get<FetchNotesResponse>('/notes', { params });
     return response.data;
