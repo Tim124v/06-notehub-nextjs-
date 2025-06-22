@@ -28,10 +28,8 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
     retry: false,
   });
 
-  const notes = data?.notes || [];
-  const totalPages = data?.totalPages || 1;
-
   const filteredNotes = useMemo(() => {
+    const notes = data?.notes || [];
     if (!searchQuery) {
       return notes;
     }
@@ -40,7 +38,7 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
         note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         note.content.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [notes, searchQuery]);
+  }, [data?.notes, searchQuery]);
 
   const handlePageChange = (selectedItem: { selected: number }) => {
     setPage(selectedItem.selected + 1);
@@ -68,9 +66,9 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
 
       {isLoading ? <p>Loading...</p> : <NoteList notes={filteredNotes} />}
 
-      {totalPages > 1 && (
+      {data && data.totalPages > 1 && (
         <Pagination
-          pageCount={totalPages}
+          pageCount={data.totalPages}
           onPageChange={handlePageChange}
           forcePage={page - 1}
         />

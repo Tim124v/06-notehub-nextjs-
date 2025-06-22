@@ -4,14 +4,12 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import css from './NoteModal.module.css';
 import NoteForm from '../NoteForm/NoteForm';
-import { Note } from '@/types/note';
 
 interface NoteModalProps {
   onClose: () => void;
-  note?: Note;
 }
 
-function NoteModal({ onClose, note }: NoteModalProps) {
+function NoteModal({ onClose }: NoteModalProps) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -45,7 +43,7 @@ function NoteModal({ onClose, note }: NoteModalProps) {
       onClick={handleBackdropClick}
     >
       <div className={css.modal} onClick={e => e.stopPropagation()}>
-        <NoteForm onClose={onClose} note={note} />
+        <NoteForm onClose={onClose} />
       </div>
     </div>,
     document.body
