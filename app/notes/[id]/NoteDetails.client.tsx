@@ -1,9 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchNoteById } from '@/lib/api';
-import NoteModal from '@/components/NoteModal/NoteModal';
 import { Note } from '@/types/note';
 import css from './NoteDetails.module.css';
 
@@ -12,8 +10,6 @@ interface NoteDetailsProps {
 }
 
 export default function NoteDetails({ noteId }: NoteDetailsProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   const {
     data: note,
     isLoading,
@@ -40,20 +36,11 @@ export default function NoteDetails({ noteId }: NoteDetailsProps) {
         <div className={css.item}>
           <div className={css.header}>
             <h2>{note.title}</h2>
-            <button className={css.editBtn} onClick={() => setIsModalOpen(true)}>
-              Edit note
-            </button>
           </div>
           <p className={css.content}>{note.content}</p>
           <p className={css.date}>Created: {createdDate}</p>
         </div>
       </div>
-      {isModalOpen && (
-        <NoteModal
-          note={note}
-          onClose={() => setIsModalOpen(false)}
-        />
-      )}
     </>
   );
 }
