@@ -1,7 +1,7 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteNote } from '@/lib/api';
 import { Note } from '../../types/note';
 import css from './NoteList.module.css';
@@ -30,12 +30,16 @@ const getTagClassName = (tag: Note['tag']) => {
 function NoteList({ notes }: NoteListProps) {
   const queryClient = useQueryClient();
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteNote,
+  const mutation = useMutation({
+    mutationFn: (id: number) => deleteNote(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
   });
+
+  const handleDelete = (id: number) => {
+    mutation.mutate(id);
+  };
 
   if (!notes.length) {
     return <p>No notes found.</p>;
@@ -48,16 +52,18 @@ function NoteList({ notes }: NoteListProps) {
           <h2 className={css.title}>{note.title}</h2>
           <p className={css.content}>{note.content}</p>
           <div className={css.footer}>
-            <span className={getTagClassName(note.tag)}>{note.tag}</span>
-            <Link href={`/notes/${note.id}`} className={css.link}>
-              View details
-            </Link>
+            <div className={css.meta}>
+              <span className={getTagClassName(note.tag)}>{note.tag}</span>
+              <Link href={`/notes/${note.id}`} className={css.link}>
+                View details
+              </Link>
+            </div>
             <button
-              className={css.button}
-              onClick={() => deleteMutation.mutate(note.id)}
-              disabled={deleteMutation.isPending}
+              onClick={() => handleDelete(note.id)}
+              className={css.deleteButton}
+              disabled={mutation.isPending && mutation.variables === note.id}
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              Delete
             </button>
           </div>
         </li>

@@ -1,35 +1,32 @@
 import axios from "axios";
 import { Note, CreateNoteRequest, UpdateNoteRequest } from '@/types/note';
 
-
 const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
 const baseURL = "https://notehub-public.goit.study/api";
-
 
 const api = axios.create({ 
   baseURL, 
   headers: { Authorization: `Bearer ${token}` } 
 });
 
-interface FetchNotesResponse {
+export interface FetchNotesResponse {
   notes: Note[];
   totalPages: number;
 }
 
-export const fetchNotes = async (page: number = 1, query: string = ''): Promise<FetchNotesResponse> => {
+export const fetchNotes = async (page: number = 1): Promise<FetchNotesResponse> => {
   try {
-    const params: { page: number, query?: string } = { page };
-    if (query) {
-      params.query = query;
-    }
-    const response = await api.get('/notes', { params });
+    const params = new URLSearchParams({
+      page: page.toString(),
+    });
+
+    const response = await api.get<FetchNotesResponse>('/notes', { params });
     return response.data;
   } catch (error) {
     console.error('Error fetching notes:', error);
     throw error;
   }
 };
-
 
 export async function fetchNoteById(id: number): Promise<Note> {
   try {
@@ -40,7 +37,6 @@ export async function fetchNoteById(id: number): Promise<Note> {
     throw new Error('Failed to fetch note');
   }
 }
-
 
 export async function createNote(note: CreateNoteRequest): Promise<Note> {
   try {
@@ -65,10 +61,9 @@ export async function updateNote(
   }
 }
 
-
-export async function deleteNote(id: number): Promise<{ message: string }> {
+export async function deleteNote(id: number): Promise<Note> {
   try {
-    const response = await api.delete<{ message: string }>(`/notes/${id}`);
+    const response = await api.delete<Note>(`/notes/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error deleting note:', error);

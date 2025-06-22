@@ -58,7 +58,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: auto;
+  margin-top: 1rem;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .tag {
@@ -87,8 +93,28 @@
   text-decoration: none;
   display: inline-block;
   transition: background-color 0.2s ease;
+  transition: color 0.2s;
 }
 
 .link:hover {
   background-color: #0b5ed7;
+}
+
+.deleteButton {
+  background-color: #e53e3e;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.deleteButton:hover {
+  background-color: #c53030;
+}
+
+.deleteButton:disabled {
+  background-color: #a0aec0;
+  cursor: not-allowed;
 }

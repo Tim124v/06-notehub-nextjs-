@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import css from './NoteModal.module.css';
@@ -6,11 +7,11 @@ import NoteForm from '../NoteForm/NoteForm';
 import { Note } from '@/types/note';
 
 interface NoteModalProps {
-  note?: Note;
   onClose: () => void;
+  note?: Note;
 }
 
-function NoteModal({ note, onClose }: NoteModalProps) {
+function NoteModal({ onClose, note }: NoteModalProps) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -44,7 +45,7 @@ function NoteModal({ note, onClose }: NoteModalProps) {
       onClick={handleBackdropClick}
     >
       <div className={css.modal} onClick={e => e.stopPropagation()}>
-        <NoteForm note={note} onClose={onClose} />
+        <NoteForm onClose={onClose} note={note} />
       </div>
     </div>,
     document.body
