@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Note, CreateNoteRequest, UpdateNoteRequest } from '@/types/note';
+import { Note, CreateNoteRequest } from '@/types/note';
 
 const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
 const baseURL = "https://notehub-public.goit.study/api";
@@ -49,19 +49,6 @@ export async function createNote(note: CreateNoteRequest): Promise<Note> {
   } catch (error) {
     console.error('Error creating note:', error);
     throw new Error('Failed to create note');
-  }
-}
-
-export async function updateNote(
-  id: number,
-  note: UpdateNoteRequest
-): Promise<Note> {
-  try {
-    const response = await api.put<Note>(`/notes/${id}`, note);
-    return response.data;
-  } catch (error) {
-    console.error('Error updating note:', error);
-    throw new Error('Failed to update note');
   }
 }
 

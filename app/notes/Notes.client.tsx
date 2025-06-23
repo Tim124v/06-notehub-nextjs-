@@ -37,7 +37,7 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
     } else {
       setPage(1);
     }
-  }, [debouncedSearchQuery]);
+  }, [searchQuery]);
 
   const handlePageChange = (selectedItem: { selected: number }) => {
     setPage(selectedItem.selected + 1);
@@ -75,7 +75,7 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
           pageCount={data.totalPages}
           onPageChange={handlePageChange}
           forcePage={page - 1}
-      />
+        />
       )}
       
       {isModalOpen && <NoteModal onClose={() => setIsModalOpen(false)} />}
