@@ -1,20 +1,28 @@
 'use client';
 
+import { useState } from 'react';
 import css from './SearchBox.module.css';
 
 interface SearchBoxProps {
-  value: string;
   onChange: (value: string) => void;
 }
 
-function SearchBox({ value, onChange }: SearchBoxProps) {
+function SearchBox({ onChange }: SearchBoxProps) {
+  const [value, setValue] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setValue(newValue);
+    onChange(newValue);
+  };
+
   return (
     <input
       className={css.input}
       type="text"
       placeholder="Search notes"
       value={value}
-      onChange={e => onChange(e.target.value)}
+      onChange={handleChange}
     />
   );
 }

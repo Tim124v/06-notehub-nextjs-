@@ -16,12 +16,12 @@ export interface FetchNotesResponse {
 
 export const fetchNotes = async (page: number = 1, query?: string): Promise<FetchNotesResponse> => {
   try {
-    const params = new URLSearchParams({
+    const params: { page: string; search?: string } = {
       page: page.toString(),
-    });
+    };
 
     if (query) {
-      params.append('search', query);
+      params.search = query;
     }
 
     const response = await api.get<FetchNotesResponse>('/notes', { params });

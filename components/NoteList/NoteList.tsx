@@ -23,7 +23,7 @@ const getTagClassName = (tag: Note['tag']) => {
     case 'Shopping':
       return `${css.tag} ${css.shopping}`;
     default:
-      return css.tag;
+  return css.tag;
   }
 };
 
@@ -44,7 +44,7 @@ function NoteList({ notes }: NoteListProps) {
   if (!notes.length) {
     return <p>No notes found.</p>;
   }
-
+  
   return (
     <ul className={css.list}>
       {notes.map(note => (
@@ -53,12 +53,12 @@ function NoteList({ notes }: NoteListProps) {
           <p className={css.content}>{note.content}</p>
           <div className={css.footer}>
             <div className={css.meta}>
-              <span className={getTagClassName(note.tag)}>{note.tag}</span>
-              <Link href={`/notes/${note.id}`} className={css.link}>
-                View details
-              </Link>
+            <span className={getTagClassName(note.tag)}>{note.tag}</span>
+            <Link href={`/notes/${note.id}`} className={css.link}>
+              View details
+            </Link>
             </div>
-            <button
+            <button 
               onClick={() => handleDelete(note.id)}
               className={css.deleteButton}
               disabled={mutation.isPending && mutation.variables === note.id}

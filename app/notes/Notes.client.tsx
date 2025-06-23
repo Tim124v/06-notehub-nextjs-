@@ -52,8 +52,8 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
       <div className={styles.toolbar}>
         <h1>Notes</h1>
         <div className={styles.toolbarRight}>
-          <SearchBox value={searchQuery} onChange={handleSearchChange} />
-          <button
+          <SearchBox onChange={handleSearchChange} />
+          <button 
             onClick={() => setIsModalOpen(true)}
             className={styles.button}
           >
@@ -61,21 +61,27 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
           </button>
         </div>
       </div>
-
-      {isLoading ? <p>Loading...</p> : <NoteList notes={data?.notes || []} />}
+      
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : data?.notes && data.notes.length > 0 ? (
+        <NoteList notes={data.notes} />
+      ) : (
+        <p>No notes found</p>
+      )}
 
       {data && data.totalPages > 1 && (
         <Pagination
           pageCount={data.totalPages}
           onPageChange={handlePageChange}
           forcePage={page - 1}
-        />
+      />
       )}
-
+      
       {isModalOpen && <NoteModal onClose={() => setIsModalOpen(false)} />}
     </div>
   );
-}
+} 
 
 export default function NotesClient({ initialNotes }: NotesClientProps) {
   return <NotesClientContent initialNotes={initialNotes} />;

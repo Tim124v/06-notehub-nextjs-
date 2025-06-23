@@ -25,8 +25,8 @@ export default async function NoteDetailsPage({ params }: PageProps) {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className={styles.container}>
-        <div className={styles.item}>
+    <div className={styles.container}>
+      <div className={styles.item}>
           <NoteDetails noteId={noteId} />
         </div>
       </div>
