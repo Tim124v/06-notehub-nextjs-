@@ -4,16 +4,13 @@ import { useState } from 'react';
 import css from './SearchBox.module.css';
 
 interface SearchBoxProps {
+  value: string;
   onChange: (value: string) => void;
 }
 
-function SearchBox({ onChange }: SearchBoxProps) {
-  const [value, setValue] = useState('');
-
+function SearchBox({ value, onChange }: SearchBoxProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setValue(newValue);
-    onChange(newValue);
+    onChange(e.target.value);
   };
 
   return (

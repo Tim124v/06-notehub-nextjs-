@@ -39,8 +39,8 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
     }
   }, [searchQuery]);
 
-  const handlePageChange = (selectedItem: { selected: number }) => {
-    setPage(selectedItem.selected + 1);
+  const handlePageChange = (page: number) => {
+    setPage(page);
   };
 
   const handleSearchChange = (value: string) => {
@@ -52,7 +52,7 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
       <div className={styles.toolbar}>
         <h1>Notes</h1>
         <div className={styles.toolbarRight}>
-          <SearchBox onChange={handleSearchChange} />
+          <SearchBox value={searchQuery} onChange={handleSearchChange} />
           <button 
             onClick={() => setIsModalOpen(true)}
             className={styles.button}
@@ -64,7 +64,7 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
       
       {isLoading ? (
         <p>Loading...</p>
-      ) : data?.notes && data.notes.length > 0 ? (
+      ) : data?.notes !== undefined ? (
         <NoteList notes={data.notes} />
       ) : (
         <p>No notes found</p>
@@ -72,9 +72,9 @@ function NotesClientContent({ initialNotes }: NotesClientProps) {
 
       {data && data.totalPages > 1 && (
         <Pagination
-          pageCount={data.totalPages}
+          totalPages={data.totalPages}
+          currentPage={page}
           onPageChange={handlePageChange}
-          forcePage={page - 1}
         />
       )}
       
